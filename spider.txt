@@ -1,0 +1,43 @@
+﻿# _*_ coding: utf-8 _*_
+import urllib.request
+from bs4 import BeautifulSoup
+import os
+
+for i in range(1,50):
+    respond = urllib.request.urlopen("http://desk.zol.com.cn/meinv/%s.html" % i)
+    html = respond.read()
+    print(html)
+    soup = BeautifulSoup(html, 'html.parser', from_encoding='gbk')
+    lis = soup.find_all('li', class_="photo-list-padding")
+    print(lis)
+    info_list = []
+    for li in lis:
+        temp = {}
+        a = li.find_all('a')[0]
+        img = li.find_all('img')[0]
+        temp['url'] = "http://desk.zol.com.cn%s" % a['href']
+        temp['title'] = img['alt']
+        info_list.append(temp)
+    print(info_list)
+    for info in info_list:
+        response1 = urllib.request.urlopen(info['url'])
+        html1 = response1.read()
+        soup1 = BeautifulSoup(html1, 'html.parser', from_encoding='gbk')
+        ul = soup1.find_all('ul', id="showImg")[0]
+        img_lis = ul.find_all('li')
+        bigImg_list = []
+        for li in img_lis:
+            img = li.find_all('img')[0]
+            print(img)
+            try:
+                url = img['src']
+            except Exception as e:
+                url = img['srcs']
+            bigImg_list.append(url)
+        os.mkdir(info['title'])
+        j = 1
+        for url in bigImg_list:
+            img_data = urllib.request.urlopen(url).read()
+            with open('%s\\%s.jpg' % (info['title'], j), 'wb') as f:
+                f.write(img_data)
+            j += 1
